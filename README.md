@@ -19,7 +19,7 @@ This Python script reads song IDs from a CSV file, fetches song details from You
 
     If you don't use the `--csv` flag, you will be prompted to select a CSV file that contains song IDs.
 
-2. Input the name of the column in the CSV file that contains the song IDs.
+2. Input the number of the column in the CSV file that contains the song IDs.
 
 3. Authenticate with the YouTube Music API when prompted.
 
@@ -27,9 +27,9 @@ This Python script reads song IDs from a CSV file, fetches song details from You
 
 5. If you chose to create a new playlist, input the name of the new playlist.
 
-6. If you chose to add songs to an existing playlist, select the playlist from the list.
+6. If you chose to add songs to an existing playlist, select the playlist number from the list.
 
-The script will then fetch the song details for each song ID in the CSV file and add the songs to the specified playlist.
+The script will then fetch the song details for each song ID in the CSV file, check if the song is already in the playlist, and add the songs to the specified playlist if they are not already present.
 
 ## Note
 

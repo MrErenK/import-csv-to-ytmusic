@@ -113,7 +113,16 @@ def get_playlist_id(ytmusic, playListName):
         exit()
     return playListID
 
+def get_playlist_songs(ytmusic, playListID):
+    try:
+        playlist_songs = ytmusic.get_playlist(playListID)['tracks']
+        return {song['videoId'] for song in playlist_songs}
+    except Exception as e:
+        print(f"Error getting songs from playlist: {e}")
+        exit()
+
 def process_values(ytmusic, values, playListID, playListName):
+    playlist_songs = get_playlist_songs(ytmusic, playListID)
     for value in values:
         try:
             video_details = ytmusic.get_song(value)
@@ -122,6 +131,9 @@ def process_values(ytmusic, values, playListID, playListName):
                 search_results = ytmusic.search(song_title, filter='songs', limit=1)
                 if search_results:
                     song = search_results[0]
+                    if song['videoId'] in playlist_songs:
+                        print(f"Song: {song['title']} by {song['artists'][0]['name']} is already in the playlist. Skipping...")
+                        continue
                     title = song['title']
                     print(f"Song: {title}, Artist: {song['artists'][0]['name']}")
                     print(f"URL: https://music.youtube.com/watch?v={song['videoId']}")
