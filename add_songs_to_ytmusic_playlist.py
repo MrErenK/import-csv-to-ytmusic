@@ -4,12 +4,16 @@ from tkinter import filedialog
 from ytmusicapi import YTMusic as ytm
 import ytmusicapi as ytmapi
 import os
+import argparse
 
-def get_file_path():
-    root = tk.Tk()
-    root.withdraw()
-    file_path = filedialog.askopenfilename(filetypes=[('CSV Files', '*.csv')])
-    return file_path
+def get_file_path(args):
+    if args.csv:
+        return args.csv
+    else:
+        root = tk.Tk()
+        root.withdraw()
+        file_path = filedialog.askopenfilename(filetypes=[('CSV Files', '*.csv')])
+        return file_path
 
 def validate_file_path(file_path):
     if not file_path:
@@ -130,7 +134,11 @@ def process_values(ytmusic, values, playListID, playListName):
             print("")
 
 def main():
-    file_path = get_file_path()
+    parser = argparse.ArgumentParser(description='Add songs to YouTube Music playlist from a CSV file.')
+    parser.add_argument('--csv', type=str, help='Path to the CSV file.')
+    args = parser.parse_args()
+
+    file_path = get_file_path(args)
     validate_file_path(file_path)
     df = read_csv_file(file_path)
     id_column = get_id_column(df)
