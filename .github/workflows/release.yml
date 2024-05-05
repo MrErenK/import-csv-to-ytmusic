@@ -37,7 +37,7 @@ jobs:
     - name: Upload binary to release
       uses: svenstaro/upload-release-action@v2
       with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        repo_token: ${{ secrets.TOKEN }}
         file: dist/add_songs_to_ytmusic_playlist
         asset_name: add_songs_to_ytmusic_playlist_${{ github.sha }}_linux
         tag: ${{ github.ref }}
@@ -75,7 +75,7 @@ jobs:
     - name: Upload binary to release
       uses: svenstaro/upload-release-action@v2
       with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        repo_token: ${{ secrets.TOKEN }}
         file: dist/add_songs_to_ytmusic_playlist.exe
         asset_name: add_songs_to_ytmusic_playlist_${{ github.sha }}_windows.exe
         tag: ${{ github.ref }}

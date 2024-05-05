@@ -128,7 +128,11 @@ def process_values(ytmusic, values, playListID, playListName):
             video_details = ytmusic.get_song(value)
             if video_details:
                 song_title = video_details['videoDetails']['title']
-                search_results = ytmusic.search(song_title, filter='songs', limit=1)
+                try:
+                    search_results = ytmusic.search(song_title, filter='songs', limit=1)
+                except Exception as e:
+                    print(f"Error searching for song {song_title}: {e}")
+                    continue
                 if search_results:
                     song = search_results[0]
                     if song['videoId'] in playlist_songs:
@@ -138,7 +142,11 @@ def process_values(ytmusic, values, playListID, playListName):
                     print(f"Song: {title}, Artist: {song['artists'][0]['name']}")
                     print(f"URL: https://music.youtube.com/watch?v={song['videoId']}")
                     print(f"Adding to playlist {playListName}, {playListID}")
-                    ytmusic.add_playlist_items(playListID, [song['videoId']])
+                    try:
+                        ytmusic.add_playlist_items(playListID, [song['videoId']])
+                    except Exception as e:
+                        print(f"Error adding song {title} to playlist: {e}")
+                        continue
                     print("")
                 else:
                     print(f"No results found for value: {value}")
@@ -147,7 +155,7 @@ def process_values(ytmusic, values, playListID, playListName):
                 print(f"No video details found for value: {value}")
                 print("")
         except Exception as e:
-            print(f"An error occurred while processing the value '{value}': {e}")
+            print(f"Error processing value {value}: {e}")
             print("")
 
 def main():
