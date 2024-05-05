@@ -39,13 +39,14 @@ def read_csv_file(file_path):
 
 def get_id_column(df):
     print("Columns in the CSV file:")
-    for column in df.columns:
-        print(column)
-    id_column = input("Enter the column name that contains song IDs: ")
-    if id_column not in df.columns:
-        print(f"Error: The column '{id_column}' does not exist in the CSV file.")
-        exit()
-    return id_column
+    for i, column in enumerate(df.columns, start=1):
+        print(f"{i}. {column}")
+    while True:
+        column_number = input("Enter the number of the column that contains song IDs: ")
+        if column_number.isdigit() and 1 <= int(column_number) <= len(df.columns):
+            return df.columns[int(column_number) - 1]
+        else:
+            print("Invalid input. Please enter a valid number.")
 
 def authenticate_ytmusic():
     if not os.path.isfile("headers_auth.json"):
@@ -85,12 +86,16 @@ def get_existing_playlist(ytmusic):
         print("No existing playlists found.")
         return create_playlist(ytmusic)
     print("Existing playlists:")
-    for playlist in playlists:
+    for i, playlist in enumerate(playlists, start=1):
         if playlist['playlistId'] != 'SE':
-            print(f"Title: {playlist['title']}, ID: {playlist['playlistId']}")
+            print(f"{i}. Name: {playlist['title']}, ID: {playlist['playlistId']}")
             print("")
-    playListName = input("Enter the playlist name or ID to add the songs to: ")
-    return playListName
+    while True:
+        playlist_number = input("Enter the number of the playlist to add the songs to: ")
+        if playlist_number.isdigit() and 1 <= int(playlist_number) <= len(playlists):
+            return playlists[int(playlist_number) - 1]['title']
+        else:
+            print("Invalid input. Please enter a valid number.")
 
 def get_playlist_id(ytmusic, playListName):
     try:
@@ -134,26 +139,31 @@ def process_values(ytmusic, values, playListID, playListName):
             print("")
 
 def main():
-    parser = argparse.ArgumentParser(description='Add songs to YouTube Music playlist from a CSV file.')
-    parser.add_argument('--csv', type=str, help='Path to the CSV file.')
-    args = parser.parse_args()
+    try:
+        parser = argparse.ArgumentParser(description='Add songs to YouTube Music playlist from a CSV file.')
+        parser.add_argument('--csv', type=str, help='Path to the CSV file.')
+        args = parser.parse_args()
 
-    file_path = get_file_path(args)
-    validate_file_path(file_path)
-    df = read_csv_file(file_path)
-    id_column = get_id_column(df)
-    values = df[id_column].unique()
-    ytmusic = authenticate_ytmusic()
-    getPlayListName = get_playlist_name()
-    if getPlayListName.lower() == 'n':
-        playListName = create_playlist(ytmusic)
-    elif getPlayListName.lower() == 'y':
-        playListName = get_existing_playlist(ytmusic)
-    else:
-        print("Invalid input. Exiting...")
+        file_path = get_file_path(args)
+        validate_file_path(file_path)
+        df = read_csv_file(file_path)
+        id_column = get_id_column(df)
+        values = df[id_column].unique()
+        ytmusic = authenticate_ytmusic()
+        getPlayListName = get_playlist_name()
+        if getPlayListName.lower() == 'n':
+            playListName = create_playlist(ytmusic)
+        elif getPlayListName.lower() == 'y':
+            playListName = get_existing_playlist(ytmusic)
+        else:
+            print("Invalid input. Exiting...")
+            exit()
+        playListID = get_playlist_id(ytmusic, playListName)
+        process_values(ytmusic, values, playListID, playListName)
+    except KeyboardInterrupt:
+        print("")
+        print("Exiting...")
         exit()
-    playListID = get_playlist_id(ytmusic, playListName)
-    process_values(ytmusic, values, playListID, playListName)
 
 if __name__ == "__main__":
     main()
