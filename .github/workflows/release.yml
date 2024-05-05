@@ -28,6 +28,23 @@ jobs:
       run: |
         pyinstaller --onefile add_songs_to_ytmusic_playlist.py
 
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: add_songs_to_ytmusic_playlist
+        path: dist/add_songs_to_ytmusic_playlist
+
+    - name: Upload binary to release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: dist/add_songs_to_ytmusic_playlist
+        asset_name: add_songs_to_ytmusic_playlist_${{ github.sha }}_linux
+        tag: ${{ github.ref }}
+        overwrite: true
+        body: "Automated release from GitHub Actions for the commit ${{ github.sha }}."
+        make_latest: true
+
   build-windows:
     name: Build for Windows
     runs-on: windows-latest
@@ -48,3 +65,20 @@ jobs:
     - name: Build executable
       run: |
         pyinstaller --onefile add_songs_to_ytmusic_playlist.py
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: add_songs_to_ytmusic_playlist
+        path: dist/add_songs_to_ytmusic_playlist
+
+    - name: Upload binary to release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: dist/add_songs_to_ytmusic_playlist.exe
+        asset_name: add_songs_to_ytmusic_playlist_${{ github.sha }}_windows.exe
+        tag: ${{ github.ref }}
+        overwrite: true
+        body: "Automated release from GitHub Actions for the commit ${{ github.sha }}."
+        make_latest: true
