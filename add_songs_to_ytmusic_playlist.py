@@ -123,6 +123,7 @@ def get_playlist_songs(ytmusic, playListID):
 
 def process_values(ytmusic, values, playListID, playListName):
     playlist_songs = get_playlist_songs(ytmusic, playListID)
+    song_count = 0
     for value in values:
         try:
             video_details = ytmusic.get_song(value)
@@ -144,6 +145,7 @@ def process_values(ytmusic, values, playListID, playListName):
                     print(f"Adding to playlist {playListName}, {playListID}")
                     try:
                         ytmusic.add_playlist_items(playListID, [song['videoId']])
+                        song_count += 1
                     except Exception as e:
                         print(f"Error adding song {title} to playlist: {e}")
                         continue
@@ -157,6 +159,7 @@ def process_values(ytmusic, values, playListID, playListName):
         except Exception as e:
             print(f"Error processing value {value}: {e}")
             print("")
+    print(f"Total number of songs added: {song_count}")
 
 def main():
     try:
@@ -169,6 +172,7 @@ def main():
         df = read_csv_file(file_path)
         id_column = get_id_column(df)
         values = df[id_column].unique()
+        print(f"Total number of unique songs found in CSV file: {len(values)}")
         ytmusic = authenticate_ytmusic()
         getPlayListName = get_playlist_name()
         if getPlayListName.lower() == 'n':
