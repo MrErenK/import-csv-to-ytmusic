@@ -80,7 +80,7 @@ def get_playlist_choice() -> bool:
 
 def create_or_get_playlist(ytmusic: YTMusic) -> str:
     if get_playlist_choice():
-        return get_playlist_id(ytmusic, get_existing_playlist(ytmusic))
+        return get_existing_playlist(ytmusic)
     else:
         return create_playlist(ytmusic)
 
@@ -141,23 +141,34 @@ def get_playlist_songs(ytmusic: YTMusic, playlist_id: str) -> list:
         exit()
 
 def process_song(ytmusic: YTMusic, value: str, playlist_id: str, playlist_name: str) -> int:
-    song_title = ytmusic.get_song(value)['videoDetails']['title']
-    song_author = ytmusic.get_song(value)['videoDetails']['author']
-    song_id = ytmusic.get_song(value)['videoDetails']['videoId']
-    playlist_songs = {song['videoId'] for song in get_playlist_songs(ytmusic, playlist_id)}
-    if value in playlist_songs:
-        print(f"Song: {song_title}, Artist: {song_author} has already been added to the playlist. Skipping...")
-        return 0
-    print(f"Song: {song_title}, Artist: {song_author}")
-    print(f"URL: https://music.youtube.com/watch?v={song_id}")
-    print(f"Adding to playlist: {playlist_name}, {playlist_id}")
     try:
-        ytmusic.add_playlist_items(playlist_id, [song_id])
+        song_info = ytmusic.get_song(value)
+        if 'videoDetails' not in song_info:
+            print(f"Error: 'videoDetails' not found for song with ID {value}")
+            return 0
+        
+        song_details = song_info['videoDetails']
+        song_title = song_details.get('title', 'Unknown Title')
+        song_author = song_details.get('author', 'Unknown Author')
+        song_id = song_details.get('videoId', 'Unknown ID')
+
+        playlist_songs = {song['videoId'] for song in get_playlist_songs(ytmusic, playlist_id)}
+        if value in playlist_songs:
+            print(f"Song: {song_title}, Artist: {song_author} has already been added to the playlist \"{playlist_name}\". Skipping...")
+            return 0
+        print(f"Song: {song_title}, Artist: {song_author}")
+        print(f"URL: https://music.youtube.com/watch?v={song_id}")
+        print(f"Adding to playlist: {playlist_name}, {playlist_id}")
+        try:
+            ytmusic.add_playlist_items(playlist_id, [song_id])
+        except Exception as e:
+            print(f"Error adding song {song_title} to playlist: {e}")
+            return 0
+        print("")
+        return 1
     except Exception as e:
-        print(f"Error adding song {song_title} to playlist: {e}")
+        print(f"Error processing song with ID {value}: {e}")
         return 0
-    print("")
-    return 1
 
 def process_values(ytmusic: YTMusic, values: list, playlist_id: str, playlist_name: str, delete_duplicates: bool, track_count: int) -> None:
     if delete_duplicates:
@@ -166,15 +177,9 @@ def process_values(ytmusic: YTMusic, values: list, playlist_id: str, playlist_na
     print(f"Total number of songs in the playlist: {track_count}")
     print(f"Adding songs to playlist: {playlist_name}...")
 
-    added_songs = set()
-
     song_count = 0
     for value in values:
-        if value in added_songs:
-            print(f"Song with ID {value} has already been added to the playlist. Skipping...")
-            continue
         song_count += process_song(ytmusic, value, playlist_id, playlist_name)
-        added_songs.add(value)
 
     print(f"Total number of songs added: {song_count}")
     print(f"Total number of songs in the playlist: {track_count + song_count}")
