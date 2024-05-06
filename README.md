@@ -9,27 +9,40 @@ This Python script reads song IDs from a CSV file, fetches song details from You
 - `pandas` library
 - `tkinter` library
 
+## Installation
+
+Before running the script, make sure you have installed the required libraries. You can install them using pip:
+
+```bash
+pip install ytmusicapi pandas
+```
+
 ## Usage
 
 1. Run the script using Python. You can optionally use the `--csv` flag to specify the path to your CSV file:
 
-    ```bash
-    python add_songs_to_ytmusic_playlist.py --csv /path/to/your/file.csv
-    ```
+```bash
+python add_songs_to_ytmusic_playlist.py --csv /path/to/your/file.csv
+```
 
-    If you don't use the `--csv` flag, you will be prompted to select a CSV file that contains song IDs.
+If you don't use the `--csv` flag, you will be prompted to select a CSV file that contains song IDs.
 
 2. Input the number of the column in the CSV file that contains the song IDs.
 
 3. Authenticate with the YouTube Music API when prompted.
 
-4. Choose whether to add songs to an existing playlist (input 'y') or create a new playlist (input 'n').
+4. Choose whether to add songs to an existing playlist or create a new one.
 
 5. If you chose to create a new playlist, input the name of the new playlist.
 
 6. If you chose to add songs to an existing playlist, select the playlist number from the list.
 
 The script will then fetch the song details for each song ID in the CSV file, check if the song is already in the playlist, and add the songs to the specified playlist if they are not already present.
+
+## Additional Features
+
+- Use the `--delete-duplicates` flag to automatically remove duplicate songs from the playlist.
+- Use the `--check-duplicates` flag to check for duplicate songs in a playlist without adding new songs.
 
 ## Note
 
