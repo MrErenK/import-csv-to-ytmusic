@@ -131,6 +131,7 @@ dmypy.json
 
 # csv files
 *.csv
+!example/example.csv
 
 # Authentication file
 headers_auth.json

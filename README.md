@@ -17,6 +17,20 @@ Before running the script, make sure you have installed the required libraries. 
 pip install ytmusicapi pandas
 ```
 
+Installation of tkinter on Linux:
+```bash
+sudo apt update && sudo apt install python3-tk
+```
+
+Installation of tkinter on Windows
+```bash
+pip install tk
+```
+
+## Example csv file
+
+You can see an example CSV file [here](example/example.csv).
+
 ## Usage
 
 1. Run the script using Python. You can optionally use the `--csv` flag to specify the path to your CSV file:
