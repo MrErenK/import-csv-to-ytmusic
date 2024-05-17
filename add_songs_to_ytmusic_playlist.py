@@ -337,6 +337,9 @@ def main() -> None:
             if args.csv:
                 print("Cannot check for duplicates when --csv flag is provided.")
                 exit()
+            if args.add_to_liked:
+                print("Cannot check for duplicates when --add-to-liked flag is provided.")
+                exit()
             check_duplicates(ytmusic, args.delete_duplicates)
         else:
             file_path = get_file_path(args)
