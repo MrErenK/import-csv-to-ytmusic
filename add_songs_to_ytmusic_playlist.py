@@ -9,7 +9,7 @@ from typing import Generator, Any
 
 # Constants
 AUTH_FILE = "headers_auth.json"
-PLAYLIST_ID_SEPARATOR = "SE"
+PLAYLIST_IDS_TO_NOT_SHOW = ["LM", "SE"]
 
 def get_file_path(args: argparse.Namespace) -> str:
     if args.csv:
@@ -97,7 +97,7 @@ def create_playlist(ytmusic: YTMusic) -> str:
 
 def get_existing_playlist(ytmusic: YTMusic, prompt: str = "Enter the number of the playlist to add the songs to: ") -> str:
     try:
-        playlists = ytmusic.get_library_playlists()
+        playlists = [playlist for playlist in ytmusic.get_library_playlists() if playlist['playlistId'] not in PLAYLIST_IDS_TO_NOT_SHOW]
     except Exception as e:
         print(f"Error getting library playlists: {e}")
         exit()
@@ -106,8 +106,7 @@ def get_existing_playlist(ytmusic: YTMusic, prompt: str = "Enter the number of t
         return create_playlist(ytmusic)
     print("Existing playlists:")
     for i, playlist in enumerate(playlists, start=1):
-        if playlist['playlistId']!= PLAYLIST_ID_SEPARATOR:
-            print(f"{i}. Name: {playlist['title']}, ID: {playlist['playlistId']}")
+        print(f"{i}. Name: {playlist['title']}, ID: {playlist['playlistId']}")
     while True:
         playlist_number = input(prompt)
         if playlist_number.isdigit() and 1 <= int(playlist_number) <= len(playlists):
