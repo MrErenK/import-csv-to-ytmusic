@@ -6,12 +6,22 @@ import ytmusicapi as ytmapi
 import os
 import argparse
 from typing import Generator, Any
+import difflib
 
 # Constants
 AUTH_FILE = "headers_auth.json"
 PLAYLIST_IDS_TO_NOT_SHOW = ["LM", "SE"]
 
 def get_file_path(args: argparse.Namespace) -> str:
+    """
+    Get the file path either from command line arguments or through a file dialog.
+
+    Args:
+        args (argparse.Namespace): Command line arguments.
+
+    Returns:
+        str: File path selected by the user.
+    """
     if args.csv:
         return args.csv
     else:
@@ -21,12 +31,30 @@ def get_file_path(args: argparse.Namespace) -> str:
         return file_path
 
 def validate_file_path(file_path: str) -> None:
+    """
+    Validate the selected file path.
+
+    Args:
+        file_path (str): File path to validate.
+
+    Raises:
+        ValueError: If the file path is empty or does not end with '.csv'.
+    """
     if not file_path:
         raise ValueError("No file selected.")
     if not file_path.lower().endswith('.csv'):
         raise ValueError("The selected file is not a CSV file.")
 
 def read_csv_file(file_path: str) -> pd.DataFrame:
+    """
+    Read the CSV file and return it as a DataFrame.
+
+    Args:
+        file_path (str): Path of the CSV file to read.
+
+    Returns:
+        pd.DataFrame: DataFrame containing the CSV data.
+    """
     try:
         df = pd.read_csv(file_path)
     except FileNotFoundError:
@@ -38,6 +66,15 @@ def read_csv_file(file_path: str) -> pd.DataFrame:
     return df
 
 def get_id_column(df: pd.DataFrame) -> str:
+    """
+    Get the column name containing song IDs from the user.
+
+    Args:
+        df (pd.DataFrame): DataFrame representing the CSV data.
+
+    Returns:
+        str: Name of the column containing song IDs.
+    """
     print("Columns in the CSV file:")
     for i, column in enumerate(df.columns, start=1):
         print(f"{i}. {column}")
@@ -49,6 +86,16 @@ def get_id_column(df: pd.DataFrame) -> str:
             print("Invalid input. Please enter a valid number.")
 
 def get_unique_song_ids(df: pd.DataFrame, id_column: str) -> Generator[Any, Any, Any]:
+    """
+    Generate unique song IDs from the specified column in the DataFrame.
+
+    Args:
+        df (pd.DataFrame): DataFrame containing the CSV data.
+        id_column (str): Name of the column containing song IDs.
+
+    Yields:
+        Any: Unique song IDs.
+    """
     seen = set()
     for value in df[id_column]:
         if value not in seen:
@@ -56,6 +103,12 @@ def get_unique_song_ids(df: pd.DataFrame, id_column: str) -> Generator[Any, Any,
             yield value
 
 def authenticate_ytmusic() -> YTMusic:
+    """
+    Authenticate with the YouTube Music API.
+
+    Returns:
+        YTMusic: An instance of the YTMusic class authenticated with the API.
+    """
     auth_file = AUTH_FILE
     if not os.path.isfile(auth_file):
         print("Please login to your YouTube Music account.")
@@ -64,11 +117,17 @@ def authenticate_ytmusic() -> YTMusic:
     try:
         ytmusic = YTMusic(auth_file)
     except Exception as e:
-        print(f"Error initializing YTMusic API: {e}")
+        print(f"Error initializing YTMusic API: {e}. Please make sure you are logged in to your YouTube Music account and try again.")
         exit()
     return ytmusic
 
 def get_playlist_choice() -> str:
+    """
+    Prompt the user to choose how they want to handle playlists.
+
+    Returns:
+        str: User's choice ('existing', 'new', or 'liked').
+    """
     while True:
         choice = input("Do you want to add the songs to an existing playlist, create a new one, or add to Liked Songs? (existing/e, new/n, liked/l): ")
         if choice.lower() in ['existing', 'e', 'ex', 'exist']:
@@ -81,6 +140,16 @@ def get_playlist_choice() -> str:
             print("Invalid choice. Please enter 'existing', 'new', or 'liked'.")
 
 def create_or_get_playlist(ytmusic: YTMusic, values) -> str:
+    """
+    Create a new playlist or get an existing one based on user's choice.
+
+    Args:
+        ytmusic (YTMusic): An authenticated instance of the YTMusic class.
+        values: Not used in this function.
+
+    Returns:
+        str: ID of the selected playlist.
+    """
     choice = get_playlist_choice()
     if choice == 'liked':
         return get_liked_playlist(ytmusic)
@@ -90,6 +159,15 @@ def create_or_get_playlist(ytmusic: YTMusic, values) -> str:
         return create_playlist(ytmusic)
 
 def create_playlist(ytmusic: YTMusic) -> str:
+    """
+    Create a new playlist.
+
+    Args:
+        ytmusic (YTMusic): An authenticated instance of the YTMusic class.
+
+    Returns:
+        str: ID of the newly created playlist.
+    """
     playlist_name = input("Enter the playlist name to create: ")
     playlist_description = input("Enter a description for the playlist: ")
     try:
@@ -101,6 +179,16 @@ def create_playlist(ytmusic: YTMusic) -> str:
     return playlist_id
 
 def get_existing_playlist(ytmusic: YTMusic, prompt: str = "Enter the number of the playlist to add the songs to: ") -> str:
+    """
+    Get an existing playlist from the user.
+
+    Args:
+        ytmusic (YTMusic): An authenticated instance of the YTMusic class.
+        prompt (str, optional): Prompt message for the user. Defaults to "Enter the number of the playlist to add the songs to: ".
+
+    Returns:
+        str: ID of the selected playlist.
+    """
     if not ytmusic:
         print("Error: YTMusic object not found.")
         exit()
@@ -123,6 +211,16 @@ def get_existing_playlist(ytmusic: YTMusic, prompt: str = "Enter the number of t
             print("Invalid input. Please enter a valid number.")
 
 def get_playlist_id(ytmusic: YTMusic, playlist_name: str) -> str:
+    """
+    Get the ID of a playlist.
+
+    Args:
+        ytmusic (YTMusic): An authenticated instance of the YTMusic class.
+        playlist_name (str): Name or ID of the playlist.
+
+    Returns:
+        str: ID of the playlist.
+    """
     try:
         playlists = ytmusic.get_library_playlists()
     except Exception as e:
@@ -139,6 +237,16 @@ def get_playlist_id(ytmusic: YTMusic, playlist_name: str) -> str:
     return playlist_id
 
 def get_playlist_songs(ytmusic: YTMusic, playlist_id: str) -> list:
+    """
+    Get the songs of a playlist.
+
+    Args:
+        ytmusic (YTMusic): An authenticated instance of the YTMusic class.
+        playlist_id (str): ID of the playlist.
+
+    Returns:
+        list: List of songs in the playlist.
+    """
     try:
         playlist = ytmusic.get_playlist(playlist_id, limit=None)
         playlist_songs = {song['videoId']: song for song in playlist['tracks']}
@@ -148,6 +256,16 @@ def get_playlist_songs(ytmusic: YTMusic, playlist_id: str) -> list:
         exit()
 
 def get_playlist_name(ytmusic: YTMusic, playlist_id: str) -> str:
+    """
+    Get the name of a playlist.
+
+    Args:
+        ytmusic (YTMusic): An authenticated instance of the YTMusic class.
+        playlist_id (str): ID of the playlist.
+
+    Returns:
+        str: Name of the playlist.
+    """
     try:
         playlists = ytmusic.get_library_playlists()
     except Exception as e:
@@ -164,6 +282,15 @@ def get_playlist_name(ytmusic: YTMusic, playlist_id: str) -> str:
     return playlist_name
 
 def get_liked_playlist(ytmusic: YTMusic) -> str:
+    """
+    Get the ID of the Liked Songs playlist.
+
+    Args:
+        ytmusic (YTMusic): An authenticated instance of the YTMusic class.
+
+    Returns:
+        str: ID of the Liked Songs playlist.
+    """
     try:
         return 'LM'
     except Exception as e:
@@ -171,6 +298,13 @@ def get_liked_playlist(ytmusic: YTMusic) -> str:
         exit()
 
 def add_to_liked_songs(ytmusic: YTMusic, values: list) -> None:
+    """
+    Add songs to Liked Songs.
+
+    Args:
+        ytmusic (YTMusic): An authenticated instance of the YTMusic class.
+        values (list): List of song IDs to be added.
+    """
     try:
         confirmation = input("Are you sure you want to add these songs to Liked Songs? (yes/no): ").strip().lower()
         if confirmation not in ["yes", "y"]:
@@ -216,6 +350,18 @@ def add_to_liked_songs(ytmusic: YTMusic, values: list) -> None:
     print("Finished adding songs to Liked Songs.")
 
 def process_song(ytmusic: YTMusic, value: str, playlist_id: str, playlist_name: str) -> int:
+    """
+    Process a single song to add it to a playlist.
+
+    Args:
+        ytmusic (YTMusic): An authenticated instance of the YTMusic class.
+        value (str): ID of the song to process.
+        playlist_id (str): ID of the playlist to add the song to.
+        playlist_name (str): Name of the playlist.
+
+    Returns:
+        int: 1 if the song was successfully added, 0 otherwise.
+    """
     try:
         song_info = ytmusic.get_song(value)
         if 'videoDetails' not in song_info:
@@ -246,6 +392,17 @@ def process_song(ytmusic: YTMusic, value: str, playlist_id: str, playlist_name: 
         return 0
 
 def process_values(ytmusic: YTMusic, values: list, playlist_id: str, playlist_name: str, delete_duplicates: bool, track_count: int) -> None:
+    """
+    Process multiple songs and add them to a playlist.
+
+    Args:
+        ytmusic (YTMusic): An authenticated instance of the YTMusic class.
+        values (list): List of song IDs to process.
+        playlist_id (str): ID of the playlist to add songs to.
+        playlist_name (str): Name of the playlist.
+        delete_duplicates (bool): Whether to delete duplicate songs from the playlist.
+        track_count (int): Number of tracks in the playlist before adding new songs.
+    """
     if delete_duplicates:
         delete_duplicate_song(ytmusic, playlist_id, auto_delete=True)
 
@@ -262,41 +419,82 @@ def process_values(ytmusic: YTMusic, values: list, playlist_id: str, playlist_na
     if delete_duplicates:
         delete_duplicate_song(ytmusic, playlist_id, auto_delete=True)
 
+def similar_song_titles(title1: str, title2: str) -> bool:
+    """
+    Check if two song titles are similar.
+
+    Args:
+        title1 (str): First song title.
+        title2 (str): Second song title.
+
+    Returns:
+        bool: True if the titles are similar, False otherwise.
+    """
+    title1 = title1.lower().strip()
+    title2 = title2.lower().strip()
+    
+    ratio = difflib.SequenceMatcher(None, title1, title2).ratio()
+
+    similarity_threshold = 0.8
+    return ratio >= similarity_threshold
+
 def delete_duplicate_song(ytmusic: YTMusic, playlist_id: str, auto_delete: bool = False) -> None:
+    """
+    Delete duplicate/similar songs from a playlist.
+
+    Args:
+        ytmusic (YTMusic): An authenticated instance of the YTMusic class.
+        playlist_id (str): ID of the playlist to check for duplicates.
+        auto_delete (bool, optional): Whether to automatically delete duplicate songs. Defaults to False.
+    """
     try:
         playlist = ytmusic.get_playlist(playlist_id, limit=None)
 
-        song_counts = {}
+        song_info_map = {}
         for item in playlist['tracks']:
-            if item['videoId'] in song_counts:
-                song_counts[item['videoId']] += 1
+            title = item['title'].strip().lower()
+            if title in song_info_map:
+                song_info_map[title].append(item)
             else:
-                song_counts[item['videoId']] = 1
+                song_info_map[title] = [item]
 
         print(f"Checking for duplicate songs in playlist: {playlist['title']}...")
-        duplicate_songs = {song_id: count for song_id, count in song_counts.items() if count > 1}
-        if not duplicate_songs:
-            print("No duplicate songs found in the playlist.")
-            return
-        print("Duplicate songs:")
-        for song_id, count in duplicate_songs.items():
-            song = next((item for item in playlist['tracks'] if item['videoId'] == song_id), None)
-            if song:
-                print(f"{song['title']} by {song['artists'][0]['name']} ({count} duplicates)")
-        if auto_delete or input("Do you want to remove the duplicate songs? (y/n): ").lower() == 'y':
-            print("Deleting duplicate songs...")
-            for song_id, count in duplicate_songs.items():
-                for _ in range(count - 1):  # We leave one instance of the song, so we remove count - 1 instances
-                    song = next((item for item in playlist['tracks'] if item['videoId'] == song_id), None)
-                    if song:
-                        ytmusic.remove_playlist_items(playlist_id, [{'videoId': song['videoId'], 'setVideoId': song['setVideoId']}])
-                        print(f"Duplicate song: {song['title']} by {song['artists'][0]['name']} has been deleted from the playlist.")
-        else:
-            print("No duplicate songs were removed.")
+
+        for title, song_info_list in song_info_map.items():
+            if len(song_info_list) > 1:
+                for i, song_info in enumerate(song_info_list):
+                    for other_song_info in song_info_list[i + 1:]:
+                        if similar_song_titles(song_info['title'], other_song_info['title']) and \
+                                similar_song_titles(song_info['artists'][0]['name'], other_song_info['artists'][0]['name']):
+                            print(f"Similar songs found: '{song_info['title']}' - '{song_info['artists'][0]['name']}' "
+                                  f"and '{other_song_info['title']}' - '{other_song_info['artists'][0]['name']}'")
+                            song = song_info
+                            if auto_delete:
+                                ytmusic.remove_playlist_items(playlist_id, [{'videoId': song['videoId'], 'setVideoId': song['setVideoId']}])
+                                print(f"Song: '{song['title']}' - '{song['artists'][0]['name']}' has been deleted from the playlist.")
+                            else:
+                                delete = input("Do you want to delete one of the similar songs from the playlist? (yes/no): ")
+                                if delete.strip().lower() in ["yes", "y"]:
+                                    ytmusic.remove_playlist_items(playlist_id, [{'videoId': song['videoId'], 'setVideoId': song['setVideoId']}])
+                                    print(f"Song: '{song['title']}' - '{song['artists'][0]['name']}' has been deleted from the playlist.")
+                                else:
+                                    print("Operation canceled.")
+                            break
+        if not auto_delete:
+            print("No more duplicate songs found.")
+        print("Finished checking for duplicate songs.")
+
     except Exception as e:
         print(f"Error deleting duplicate songs from playlist: {e}")
 
 def check_duplicates(ytmusic: YTMusic, delete_duplicates: bool) -> None:
+    """
+    Check for duplicate songs in a playlist.
+
+    Args:
+        ytmusic (YTMusic): An authenticated instance of the YTMusic class.
+        delete_duplicates (bool): Whether to delete duplicate songs from the playlist.
+    """
     playlist_name = get_existing_playlist(ytmusic, prompt="Enter the number of the playlist to check the duplicates: ")
     playlist_id = get_playlist_id(ytmusic, playlist_name)
     if delete_duplicates:
@@ -305,6 +503,14 @@ def check_duplicates(ytmusic: YTMusic, delete_duplicates: bool) -> None:
         delete_duplicate_song(ytmusic, playlist_id)
 
 def get_playlist_info(ytmusic: YTMusic, values: list, args: argparse.Namespace) -> None:
+    """
+    Get playlist information and add songs.
+
+    Args:
+        ytmusic (YTMusic): An authenticated instance of the YTMusic class.
+        values (list): List of song IDs to add.
+        args (argparse.Namespace): Parsed command-line arguments.
+    """
     if args.add_to_liked:
         add_to_liked_songs(ytmusic, values)
     else:
@@ -323,6 +529,9 @@ def get_playlist_info(ytmusic: YTMusic, values: list, args: argparse.Namespace) 
         process_values(ytmusic, values, playlist_id, playlist_name, args.delete_duplicates, track_count)
 
 def main() -> None:
+    """
+    Main function to handle command-line arguments and execute the program.
+    """
     try:
         parser = argparse.ArgumentParser(description='Add songs to YouTube Music playlist from a CSV file.')
         parser.add_argument('--csv', type=str, help='Path to the CSV file.')

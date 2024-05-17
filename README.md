@@ -57,6 +57,7 @@ The script will then fetch the song details for each song ID in the CSV file, ch
 
 - Use the `--delete-duplicates` flag to automatically remove duplicate songs from the playlist.
 - Use the `--check-duplicates` flag to check for duplicate songs in a playlist without adding new songs.
+- Use the `--add-to-liked` flag to add the songs to the Liked Music playlist.
 
 ## Note
 
