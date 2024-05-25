@@ -152,7 +152,7 @@ def create_or_get_playlist(ytmusic: YTMusic, values) -> str:
     """
     choice = get_playlist_choice()
     if choice == 'liked':
-        return get_liked_playlist(ytmusic)
+        return 'LM'
     elif choice == 'existing':
         return get_existing_playlist(ytmusic)
     elif choice == 'new':
@@ -280,22 +280,6 @@ def get_playlist_name(ytmusic: YTMusic, playlist_id: str) -> str:
         print("Error: The specified playlist ID does not exist.")
         exit()
     return playlist_name
-
-def get_liked_playlist(ytmusic: YTMusic) -> str:
-    """
-    Get the ID of the Liked Songs playlist.
-
-    Args:
-        ytmusic (YTMusic): An authenticated instance of the YTMusic class.
-
-    Returns:
-        str: ID of the Liked Songs playlist.
-    """
-    try:
-        return 'LM'
-    except Exception as e:
-        print("Error: Liked Songs playlist not found.")
-        exit()
 
 def add_to_liked_songs(ytmusic: YTMusic, values: list) -> None:
     """
